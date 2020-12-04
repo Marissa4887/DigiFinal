@@ -1,12 +1,9 @@
 # Who Wants to be a Millionare?
 # By Marissa Salas for Programming Digital Media
+# assisted by tutor and final gutenburg api code help from Nada
 # creation of classes game, player, question.
 
-# version 1: list of titles, player selects author
-# version 2: list of paragraph, player selects title and author
-
-# test dataset dictionary - a collection which is unordered, changeable and does not allow duplicates.
-
+# Final version: list of titles, player selects author
 
 #"Who wants to play, Who Wants to be a Millionare? "
 
