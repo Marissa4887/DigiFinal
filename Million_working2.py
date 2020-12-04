@@ -13,45 +13,14 @@
 #%%
 import random
 from books import books
-
-# import os.path
-# booklist_FILENAME = "words.txt"
-
-# def load_book(silent=False):
-#     """
-#     Returns a list of valid words. Words are strings of lowercase letters.
-    
-#     Depending on the size of the word list, this function may
-#     take a while to finish.
-#     """
-#     if(not silent):
-#       print("Loading list from file...")
-#     global booklist_FILENAME
-#     # inFile: filek
-#     if os.path.exists("psets/4/words.txt"):
-#       booklist_FILENAME = "psets/4/"+booklist_FILENAME
-#     inFile = open(booklist_FILENAME, 'r')
-
-#     # line: string
-#     line = inFile.readline()
-#     # booklist: list of strings
-#     booklist = line.split()
-#     print("  ", len(booklist), "words loaded.")
-#     return booklist
+import gutenberg
 
 
-
-
-# def choose_book(booklist):
-#     """
-#     booklist (list): paragraph (strings)
-    
-#     Returns a paragraph from booklist at random
-#     """
-#     return random.choice(booklist)
 
 #%%
-rules = "\nTo play you enter your name below. You start with $100. For each correct answer you double your money at each level. \nAfter reaching 15 levels you win, one Million dollars!" 
+# This is the statement of the rules of the game
+
+rules = "\nTo play you enter your name below. You start with $100. For each correct answer you double your money at each level. \nAfter reaching 15 levels you win, one Million dollars! \n***But one wrong answer ends the game and you leave with nothing.***" 
 
 
 # A Class is "blueprint" (ie Car) for creating objects like a cookie cutter to make cookies (many objects)
@@ -62,45 +31,22 @@ class Player:
         self.name = name
         print(f"{name} are you ready to play Who wants to be a Millionare?")
 
-#this selects the questions
+#this selects the questions randomly
 class Question:
-    def __init__(self, quizID, random1, random2, random3):
-        self.quizID = quizID
-        my_list = [quizID, random1, random2, random3]
+    def __init__(self, quiz, rand1, rand2, rand3):
+        self.question = "Who is the author of the book: " + quiz["title"]
+        self.author = quiz["author"]
+        self.quiz = quiz
 
-        a = random.choice(my_list)
-        my_list.remove(a)
+    def get_question(self):
+        return self.question
 
-        b = random.choice(my_list)
-        my_list.remove(b)
+    def get_author(self):
+        return self.author
+    
+    def ask(self):
+        return f"Who is the author of the book: {self.quiz['title']}"
 
-        c = random.choice(my_list)
-        my_list.remove(c)
-
-        d = random.choice(my_list)
-        my_list.remove(d)
-
-        # print("Choice C is: ", c)
-
-        # self.options = {
-        #     a: "Romeo and Juliet",
-        #     b: "The river and the source",
-        #     c: "The Alchemist",
-        #     d: "Enemy of the People"
-        # }
-        self.options = {
-            a: books[a]['author'],
-            b: books[b]['author'],
-            c: books[c]['author'],
-            d: books[d]['author']
-        }
-        # self.options = {
-        #     a: "Shkespear",
-        #     b: "The river and the source",
-        #     c: "The Alchemist",
-        #     d: "Enemy of the People"
-        # }
-        self.answer = quizID
         
 class Game:
     # def __init__(self, rules, users_choice, correct_answer): handles the basics of the game
@@ -110,17 +56,18 @@ class Game:
         # self.correct_answer = correct_answer
         self.level = 1
         self.player = None
-        self.prize = ["$100","$200","$300"] #, "$500", "$1,000", "$2,000", "$4,000","$8,000","$16,000","$32,000", "$64,000", "$125,000", "$250,000", "$500,000", "$1 Million"]
+        self.prize = ["$100","$200","$300", "$500", "$1,000", "$2,000", "$4,000","$8,000","$16,000","$32,000", "$64,000", "$125,000", "$250,000", "$500,000", "$1 Million"]
         self.asked_questions = []
 
     def start(self):
         print(rules)
         players_name = input("Enter your name: ")
         self.player = Player(players_name)
+        self.level = 1
 
     def end_game(self):
         print("The Game has ended.")
-        print(f"You got to level {self.level}")
+        print(f"You got to level {self.level} the {self.prize [self.level -1]} level.")
 
     def validate_user_answer(self, choice):
         if str.upper(choice) in ["A", "B", "C", "D"]:
@@ -132,10 +79,10 @@ class Game:
 
     def process_answer(self, question, a, b, c, d):
         choices = {
-            'A': a,
-            'B': b,
-            'C': c,
-            'D': d
+            'A': a["author"],
+            'B': b["author"],
+            'C': c["author"],
+            'D': d["author"]
         }
         
         user_answer = input("What's your final answer? (A, B, C, or D): ")
@@ -149,9 +96,8 @@ class Game:
 
         
         user_answer = str.upper(user_answer)
-        user_answer = str.lower(books[choices[user_answer]]['author'])
-        correct_answer = books[question.answer]['author']
-        # print("Correct answer ", correct_answer)
+        user_answer = str.lower(choices[user_answer])
+        correct_answer = question. get_author()
         correct_answer = str.lower(correct_answer)
 
         if(user_answer == correct_answer):
@@ -159,42 +105,34 @@ class Game:
             print(f"Congratulations, you moved to next level {self.level}!")
             return True
         else:
-            print("Sorry that was incorrect.")
+            print("Sorry that was incorrect. \nThe correct answer was ", str.title(correct_answer))
             self.end_game()
             return False
 
 
         
-    def process_question(self):
-        # a = 1
-        # b = 3
-        # c = 4
-        # d = 2
-        all_questions = [question for question in range(1, len(books)+1)]
-        random_four_books_ID = random.sample(all_questions, 4)
-        correct_book = random_four_books_ID[0]
-        random_book1 = random_four_books_ID[1]
-        random_book2 = random_four_books_ID[2]
-        random_book3 = random_four_books_ID[3]
+    def process_question(self):     #select the correct question and answer and 3 random others
+        print("Loading question...")
+        a = gutenberg.fetch_random_book_data()
+        b = gutenberg.fetch_random_book_data()
+        c = gutenberg.fetch_random_book_data()
+        d = gutenberg.fetch_random_book_data()
+       
+        questions_pool = [a, b, c, d]
+        random_four_books = random.sample(questions_pool, 4)
 
-        a = random.choice(random_four_books_ID)
-        random_four_books_ID.remove(a)
-
-        b = random.choice(random_four_books_ID)
-        random_four_books_ID.remove(b)
-
-        c = random.choice(random_four_books_ID)
-        random_four_books_ID.remove(c)
-
-        d = random.choice(random_four_books_ID)
-        random_four_books_ID.remove(d)
-
+        correct_book = random_four_books[0]     #in a list the first element is zero 
+        random_book1 = random_four_books[1]
+        random_book2 = random_four_books[2]
+        random_book3 = random_four_books[3]
 
         question = Question(correct_book, random_book1, random_book2, random_book3)
-        self.asked_questions.append(correct_book)
+        
+        #self.asked_questions.append(correct_book)
         print(f"LEVEL: {self.level}\n#######################################")
-        print(f"Who is the author of the book: {books[question.quizID]['title']}")
-        print(f"Is it: \nA: {books[a]['author']}\nB: {books[b]['author']}\nC: {books[c]['author']}\nD: {books[d]['author']}")
+        print(question.ask())
+        #print(f"Who is the author of the book: {books[question.quizID]['title']}")
+        print(f"Is it: \nA: {a['author']}\nB: {b['author']}\nC: {c['author']}\nD: {d['author']}")
         
         next_round = self.process_answer(question, a, b, c, d)
         if next_round:
@@ -216,21 +154,12 @@ class Game:
             return False
 
     
-
-    # def winner_loser(self):
-    #     pass
-
-    # def score(self):
-    #     pass
-
-    # def award(self):
-    #     pass
-# question = Question(3, 2, 4, 1)
 if __name__ == "__main__":
     game = Game()
     game.start()
     proceed = True
     while proceed:
+        game.start()
         game.process_question()
         proceed = game.proceed_decision()
     
